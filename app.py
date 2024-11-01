@@ -20,19 +20,19 @@ iam_client = boto3.client('iam', region_name=AWS_REGION)
 # RDS Configuration for multiple regions
 db_configs = {
     'primary': {
-        'host': 'freshbsktdb.c5kyko40s4hb.us-east-1.rds.amazonaws.com',
+        'host': 'fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com',
         'user': 'admin',
-        'password': 'Freshbasket123',
-        'database': 'freshb',
+        'password': 'qwerty1234',
+        'database': 'fbdb',
         'port': 3306,
         'pool_size': 10,
         'pool_name': 'primary_pool'
     },
     'replica': {
-        'host': 'freshbsktdb.c5kyko40s4hb.us-east-1.rds.amazonaws.com',
+        'host': 'fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com',
         'user': 'admin',
-        'password': 'Freshbasket123',
-        'database': 'freshb',
+        'password': 'qwerty1234',
+        'database': 'fbdb',
         'port': 3306,
         'pool_size': 5,
         'pool_name': 'replica_pool'
@@ -46,7 +46,7 @@ connection_pools = {
 }
 
 # Flask SQLAlchemy Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:Freshbasket123@freshbsktdb.c5kyko40s4hb.us-east-1.rds.amazonaws.com:3306/freshb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com:3306/fbdb'
 
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
