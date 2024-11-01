@@ -46,7 +46,7 @@ connection_pools = {
 }
 
 # Flask SQLAlchemy Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com:3306/fresh'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:qwerty1234@fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com:3306/fresh'
 
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
