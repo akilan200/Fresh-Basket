@@ -23,7 +23,7 @@ db_configs = {
         'host': 'fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com',
         'user': 'admin',
         'password': 'qwerty1234',
-        'database': 'fbdb',
+        'database': 'fresh',
         'port': 3306,
         'pool_size': 10,
         'pool_name': 'primary_pool'
@@ -32,7 +32,7 @@ db_configs = {
         'host': 'fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com',
         'user': 'admin',
         'password': 'qwerty1234',
-        'database': 'fbdb',
+        'database': 'fresh',
         'port': 3306,
         'pool_size': 5,
         'pool_name': 'replica_pool'
