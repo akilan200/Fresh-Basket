@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/static/js/aws-config.js"></script>
+    <script src="/static/js/health-monitor.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshBasket - Shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet"> 
+    <link rel="stylesheet" href='/static/css/styles.css'>
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <div class="nav-logo-section">
+                <a href="/" class="nav-logo">FreshBasket</a>
+            </div>
+            <div class="top-buttons">
+                <a href="/" class="nav-button">Home</a>
+                <a href="/cart" class="nav-button cart-button">
+                    View Cart
+                    <span class="cart-icon">🛒</span>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Shop Hero Section -->
+    <div class="shop-hero">
+        <div class="hero-content">
+            <h1>Fresh & Organic Products</h1>
+            <p>Discover our selection of premium quality fresh produce</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="shop-main">
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="search-bar">
+                <input type="text" placeholder="Search products..." id="searchInput">
+            </div>
+            <div class="category-filters">
+                <button class="filter-btn active" data-category="all">All</button>
+                <button class="filter-btn" data-category="fruits">Fruits</button>
+                <button class="filter-btn" data-category="vegetables">Vegetables</button>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <section id="product-list" class="product-grid"></section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About FreshBasket</h3>
+                <p>Your trusted source for fresh, organic produce delivered right to your doorstep.</p>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/shop">Shop</a></li>
+                    <li><a href="/cart">Cart</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Contact Info</h3>
+                <ul>
+                    <li>Email: info@freshbasket.com</li>
+                    <li>Phone: (123) 456-7890</li>
+                    <li>Address: 123 Fresh Street</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2024 FreshBasket. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const products = [
+                { name: 'Fresh Apples', price: 2.99, image: '/static/images/apple.jpg', category: 'fruits' },
+                { name: 'Organic Bananas', price: 1.99, image: '/static/images/banana.jpg', category: 'fruits' },
+                { name: 'Crisp Lettuce', price: 1.49, image: '/static/images/lettuce.jpg', category: 'vegetables' },
+                { name: 'Ripe Tomatoes', price: 3.49, image: '/static/images/tomato.jpg', category: 'vegetables' },
+                { name: 'Sweet Oranges', price: 4.99, image: '/static/images/orange.jpg', category: 'fruits' },
+                { name: 'Fresh Carrots', price: 1.79, image: '/static/images/carrot.jpg', category: 'vegetables' }
+            ];
+
+            const productList = document.getElementById('product-list');
+
+            function displayProducts(productsToShow) {
+                productList.innerHTML = '';
+                productsToShow.forEach(product => {
+                    const productElement = document.createElement('div');
+                    productElement.className = 'product-card';
+                    productElement.innerHTML = `
+                        <div class="product-image">
+                            <img src="${product.image}" alt="${product.name}">
+                        </div>
+                        <div class="product-info">
+                            <h3>${product.name}</h3>
+                            <p class="price">$${product.price.toFixed(2)}</p>
+                            <div class="quantity-control">
+                                <button class="qty-btn" onclick="decrementQuantity(this)">-</button>
+                                <input type="number" value="1" min="1" max="99" class="qty-input">
+                                <button class="qty-btn" onclick="incrementQuantity(this)">+</button>
+                            </div>
+                            <button onclick="addToCart('${product.name}', ${product.price}, this)" class="add-to-cart">
+                                Add to Cart
+                            </button>
+                        </div>
+                    `;
+                    productList.appendChild(productElement);
+                });
+            }
+
+            // Initial display
+            displayProducts(products);
+
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const category = button.dataset.category;
+                    
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // Filter products
+                    const filteredProducts = category === 'all' 
+                        ? products 
+                        : products.filter(product => product.category === category);
+                    
+                    displayProducts(filteredProducts);
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredProducts = products.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm)
+                );
+                displayProducts(filteredProducts);
+            });
+
+            // Initialize cart count
+            updateCartCount();
+
+            // Initialize product display
+            displayProducts(products);
+
+            // Add error handling for image loading
+            document.querySelectorAll('.product-image img').forEach(img => {
+                img.onerror = function() {
+                    this.src = 'placeholder.jpg'; // Fallback image
+                    this.alt = 'Product image not available';
+                };
+            });
+        });
+
+        function incrementQuantity(btn) {
+            const input = btn.parentElement.querySelector('.qty-input');
+            if (input.value < 99) {
+                input.value = parseInt(input.value) + 1;
+            }
+        }
+
+        function decrementQuantity(btn) {
+            const input = btn.parentElement.querySelector('.qty-input');
+            if (input.value > 1) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+
+        function addToCart(name, price, btn) {
+            const quantityInput = btn.parentElement.querySelector('.qty-input');
+            const quantity = parseInt(quantityInput.value);
+            
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            // Check if item already exists in cart
+            const existingItemIndex = cart.findIndex(item => item.name === name);
+            
+            if (existingItemIndex !== -1) {
+                // Update quantity if item exists
+                cart[existingItemIndex].quantity += quantity;
+                cart[existingItemIndex].total = cart[existingItemIndex].price * cart[existingItemIndex].quantity;
+            } else {
+                // Add new item if it doesn't exist
+                cart.push({ 
+                    name, 
+                    price, 
+                    quantity,
+                    total: price * quantity 
+                });
+            }
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            
+            // Show success message
+            showSuccessMessage(`${quantity} ${name}${quantity > 1 ? 's' : ''} added to cart!`);
+            
+            // Reset quantity to 1
+            quantityInput.value = 1;
+        }
+
+        function showSuccessMessage(message) {
+            const existingMessage = document.querySelector('.success-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'success-message';
+            messageElement.textContent = message;
+            document.body.appendChild(messageElement);
+            
+            setTimeout(() => {
+                messageElement.remove();
+            }, 2000);
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartCount = document.querySelector('.cart-count');
+            if (cartCount) {
+                cartCount.textContent = totalItems;
+            }
+        }
+    </script>
+</body>
+</html>

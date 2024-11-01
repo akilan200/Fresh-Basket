@@ -1,0 +1,620 @@
+:root {
+    --primary-color: #4CAF50;
+    --primary-light: #81c784;
+    --primary-dark: #388e3c;
+    --gradient-start: #52b788;
+    --gradient-end: #40916c;
+    --text-primary: #2c3e50;
+    --text-secondary: #526b78;
+    --background-light: #f8faf8;
+    --shadow-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Base Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-light);
+    color: var(--text-primary);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styles */
+.admin-sidebar {
+    width: 280px;
+    background: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    color: white;
+    padding: 0;
+    box-shadow: 4px 0 10px var(--shadow-color);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.logo-section {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.logo-section h2 {
+    color: white;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-section i {
+    font-size: 1.8rem;
+}
+
+/* Navigation Items */
+.sidebar-nav {
+    padding: 1.5rem 1rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.nav-item.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: 500;
+}
+
+.nav-item i {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+    width: 20px;
+    text-align: center;
+}
+
+/* Main Content Area */
+.admin-main {
+    flex: 1;
+    margin-left: 280px;
+    background: linear-gradient(135deg, #ffffff 0%, var(--background-light) 100%);
+}
+
+/* Top Navigation */
+.admin-nav {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px var(--shadow-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--background-light);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    width: 300px;
+}
+
+.search-bar input {
+    border: none;
+    background: none;
+    padding: 0.5rem;
+    width: 100%;
+    outline: none;
+    color: var(--text-primary);
+}
+
+.search-bar i {
+    color: var(--text-secondary);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px var(--shadow-color);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    color: var(--text-secondary);
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+}
+
+.stat-card .value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.trend {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.trend.up { color: #4caf50; }
+.trend.down { color: #f44336; }
+
+/* Table Styles */
+.dashboard-section {
+    margin: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px var(--shadow-color);
+}
+
+.section-header {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-filter, .btn-export {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--primary-color);
+    background: white;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-filter:hover, .btn-export:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.table-container {
+    overflow-x: auto;
+    padding: 1.5rem;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: var(--background-light);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.customer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.customer-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.status-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.status-pending {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+.status-processing {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-cancelled {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    background: var(--background-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Admin Profile */
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.notification-badge {
+    position: relative;
+    cursor: pointer;
+}
+
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .admin-sidebar {
+        width: 240px;
+    }
+    
+    .admin-main {
+        margin-left: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .admin-main {
+        margin-left: 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .search-bar {
+        width: 200px;
+    }
+}
+
+/* Status Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 400px;
+    max-width: 90%;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: var(--text-primary);
+}
+
+#statusSelect {
+    width: 100%;
+    padding: 0.8rem;
+    margin: 1rem 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    outline: none;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-cancel, .btn-update {
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background: #f5f5f5;
+    color: var(--text-secondary);
+}
+
+.btn-update {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #e0e0e0;
+}
+
+.btn-update:hover {
+    background: var(--primary-dark);
+}
+
+/* Add this to your existing CSS */
+.status-select {
+    padding: 0.5rem;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    background-color: white;
+}
+
+.status-select option {
+    font-weight: 500;
+}
+
+/* Status colors */
+.status-select[value="pending"] {
+    background-color: #FFF3E0;
+    color: #F57C00;
+}
+
+.status-select[value="processing"] {
+    background-color: #E3F2FD;
+    color: #1976D2;
+}
+
+.status-select[value="delivered"] {
+    background-color: #E8F5E9;
+    color: #388E3C;
+}
+
+.status-select[value="cancelled"] {
+    background-color: #FFEBEE;
+    color: #D32F2F;
+}
+
+/* Notification Styles */
+.notification-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 1000;
+}
+
+.notification-toast.show {
+    transform: translateX(0);
+}
+
+/* Notification Types */
+.notification-toast.success {
+    border-left: 4px solid #4CAF50;
+}
+
+.notification-toast.error {
+    border-left: 4px solid #f44336;
+}
+
+.notification-toast.warning {
+    border-left: 4px solid #ff9800;
+}
+
+.notification-toast.info {
+    border-left: 4px solid #2196f3;
+}
+
+/* Icons */
+.notification-toast i {
+    font-size: 1.5rem;
+    padding-top: 0.2rem;
+}
+
+.notification-toast.success i {
+    color: #4CAF50;
+}
+
+.notification-toast.error i {
+    color: #f44336;
+}
+
+.notification-toast.warning i {
+    color: #ff9800;
+}
+
+.notification-toast.info i {
+    color: #2196f3;
+}
+
+/* Content */
+.notification-content {
+    flex: 1;
+}
+
+.notification-content h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.notification-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+/* Close Button */
+.notification-close {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+
+.notification-close:hover {
+    color: #333;
+}
+
+/* Multiple Notifications Stack */
+.notification-toast + .notification-toast {
+    margin-top: 10px;
+}
+
+/* Animation for Stacking */
+@keyframes slideIn {
+    from {
+        transform: translateX(120%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(120%);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .notification-toast {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+    }
+
+    .notification-toast.show {
+        transform: translateX(-50%) translateY(0);
+    }
+}

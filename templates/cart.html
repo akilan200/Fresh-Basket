@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/static/js/aws-config.js"></script>
+    <script src="/static/js/health-monitor.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshBasket - Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href='/static/css/styles.css'>
+    <style>
+        /* Add these styles to your existing CSS or include them in the head */
+        .cart-summary {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        #checkout-form {
+            margin-top: 15px;
+        }
+
+        #address, #payment-method {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: inherit;
+            box-shadow: 0 0 5px rgba(40, 167, 69, 0.3);
+            transition: box-shadow 0.3s ease;
+        }
+
+        #address:focus, #payment-method:focus {
+            outline: none;
+            box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+        }
+
+        .btn-primary {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: #ffffff;
+            color: #28a745;
+            box-shadow: 0 6px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        #cart-total {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .custom-alert.success {
+            background-color: #28a745;
+        }
+
+        .custom-alert.error {
+            background-color: #dc3545;
+        }
+
+        .custom-alert.info {
+            background-color: #17a2b8;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .popup-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <header>
+            <nav>
+                <a href="/" class="logo">FreshBasket</a>
+                <div class="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/shop">Shop</a>
+                    <a href="/cart" class="active">Cart</a>
+                    <a href="/login">Login</a>
+                </div>
+            </nav>
+        </header>
+
+        <div class="content-wrap">
+            <main class="cart-container">
+                <h1>Your FreshBasket Cart</h1>
+                <section id="cart-items"></section>
+                <div class="cart-summary">
+                    <p>Total: $<span id="cart-total">0.00</span></p>
+                    <div id="checkout-form" style="display: none;">
+                        <textarea id="address" placeholder="Enter your delivery address" rows="3"></textarea>
+                        <select id="payment-method">
+                            <option value="">Select payment method</option>
+                            <option value="credit-card">Credit Card</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="cash">Cash on Delivery</option>
+                        </select>
+                    </div>
+                    <button onclick="initiateCheckout()" class="btn-primary" id="checkout-btn">Checkout</button>
+                </div>
+            </main>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 FreshBasket. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            displayCart();
+        });
+
+        function displayCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <p>Your cart is empty</p>
+                        <a href="/shop" class="btn-primary">Continue Shopping</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            cartItems.innerHTML = cart.map((item, index) => `
+                <div class="cart-item">
+                    <span class="item-name">${item.name}</span>
+                    <div class="item-details">
+                        <div class="quantity-control">
+                            <button class="qty-btn" onclick="updateCartQuantity(${index}, 'decrease')">-</button>
+                            <input type="number" value="${item.quantity}" min="1" max="99" 
+                                   onchange="updateCartQuantity(${index}, 'input')" class="qty-input">
+                            <button class="qty-btn" onclick="updateCartQuantity(${index}, 'increase')">+</button>
+                        </div>
+                        <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            updateCartTotal();
+        }
+
+        function changeQuantity(index, change) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart[index].quantity = Math.max(1, cart[index].quantity + change);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+        }
+
+        function updateQuantity(index, newQuantity) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart[index].quantity = Math.max(1, parseInt(newQuantity) || 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+        }
+
+        function removeFromCart(index) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+            showCustomAlert('Item removed from cart', 'error');
+        }
+
+        function initiateCheckout() {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cart.length === 0) {
+                showCheckoutPopup('Cart is Empty', 'Your cart is empty. Add some items before checking out!', 'Continue Shopping');
+            } else {
+                document.getElementById('checkout-form').style.display = 'block';
+                document.getElementById('checkout-btn').textContent = 'Place Order';
+                document.getElementById('checkout-btn').onclick = placeOrder;
+            }
+        }
+
+        function placeOrder() {
+            let address = document.getElementById('address').value;
+            let paymentMethod = document.getElementById('payment-method').value;
+
+            if (!address || !paymentMethod) {
+                showCustomAlert('Please fill in all required fields', 'error');
+                return;
+            }
+
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            let order = {
+                id: generateOrderId(),
+                items: cart,
+                address: address,
+                paymentMethod: paymentMethod,
+                total: calculateTotal(cart),
+                date: new Date().toISOString(),
+                status: 'Pending'
+            };
+
+            // Here you would typically send the order to your server
+            // For this example, we'll just store it in localStorage
+            let orders = JSON.parse(localStorage.getItem('orders')) || [];
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+
+            // Clear the cart
+            localStorage.removeItem('cart');
+
+            // Remove cart elements
+            document.getElementById('cart-items').innerHTML = '';
+            document.getElementById('checkout-form').style.display = 'none';
+            document.getElementById('checkout-btn').style.display = 'none';
+
+            // Set the total to 0
+            document.getElementById('cart-total').textContent = '0.00';
+
+            // Show order placed popup
+            showCheckoutPopup('Order Placed', 'Your order has been placed successfully! Redirecting to user dashboard...', 'OK');
+
+            // Redirect to user dashboard after a short delay
+            setTimeout(() => {
+                window.location.href = '/user_dashboard';
+            }, 3000);
+
+            // Update admin dashboard
+            updateAdminDashboard(order);
+        }
+
+        function calculateTotal(cart) {
+            return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+        }
+
+        // This function would be implemented on the server side in a real application
+        // function sendOrderToAdmin(order) {
+        //     // Send order data to admin dashboard
+        // }
+
+        function showCheckoutPopup(title, message, buttonText) {
+            const popup = document.getElementById('checkout-popup');
+            const popupTitle = document.getElementById('popup-title');
+            const popupMessage = document.getElementById('popup-message');
+            const popupButton = document.getElementById('popup-button');
+
+            popupTitle.textContent = title;
+            popupMessage.textContent = message;
+            popupButton.textContent = buttonText;
+
+            popup.style.display = 'block';
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('checkout-popup');
+            popup.style.display = 'none';
+        }
+
+        // Add this to ensure the popup can be closed by clicking outside of it
+        window.onclick = function(event) {
+            const popup = document.getElementById('checkout-popup');
+            if (event.target == popup) {
+                popup.style.display = "none";
+            }
+        }
+
+        function showCustomAlert(message, type = 'success') {
+            const alertElement = document.getElementById('custom-alert');
+            alertElement.textContent = message;
+            alertElement.className = `custom-alert ${type}`;
+            alertElement.style.display = 'block';
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 3000);
+        }
+
+        function generateOrderId() {
+            return 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function updateAdminDashboard(order) {
+            // In a real application, this would be an API call to the server
+            // For this example, we'll use localStorage to simulate server-side storage
+            let adminOrders = JSON.parse(localStorage.getItem('adminOrders')) || [];
+            adminOrders.push(order);
+            localStorage.setItem('adminOrders', JSON.stringify(adminOrders));
+        }
+
+        function updateCartQuantity(index, action) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const item = cart[index];
+            
+            switch(action) {
+                case 'increase':
+                    if (item.quantity < 99) item.quantity++;
+                    break;
+                case 'decrease':
+                    if (item.quantity > 1) item.quantity--;
+                    break;
+                case 'input':
+                    const input = event.target;
+                    item.quantity = Math.max(1, Math.min(99, parseInt(input.value) || 1));
+                    break;
+            }
+            
+            item.total = item.price * item.quantity;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart(); // Refresh cart display
+            updateCartTotal();
+        }
+
+        function updateCartTotal() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const total = cart.reduce((sum, item) => sum + item.total, 0);
+            document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Add any other cart-related functions here
+        
+        // Initialize the cart display when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            displayCart();
+            updateCartTotal();
+        });
+    </script>
+    <!-- Add this just before the closing </body> tag -->
+    <div id="checkout-popup" class="popup">
+        <div class="popup-content">
+            <h2 id="popup-title"></h2>
+            <p id="popup-message"></p>
+            <button onclick="closePopup()" class="btn-primary" id="popup-button"></button>
+        </div>
+    </div>
+</body>
+</html>

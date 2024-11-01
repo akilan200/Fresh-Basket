@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/static/js/aws-config.js"></script>
+    <script src="/static/js/health-monitor.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshBasket Shop</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="page-container">
+        <div class="content-wrap">
+            <header>
+                <div id="shop-hero">
+                    <div class="hero-content">
+                        <h1>Welcome to the Shop</h1>
+                    </div>
+                </div>
+            </header>
+
+            <main>
+                <h2 class="center-text">Shop Options</h2>
+                <div class="center-buttons">
+                    <a href="/" class="home-button">Home</a>
+                    <a href="/shop" class="shop-button ellipse">Browse Items</a>
+                    <a href="/user_dashboard" class="shop-button ellipse">User Dashboard</a>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Show custom alert on page load
+        window.addEventListener('load', function() {
+            showCustomAlert('Login successful!', 'success');
+        });
+
+        function showCustomAlert(message, type = 'info') {
+            const alertElement = document.createElement('div');
+            alertElement.className = `custom-alert ${type}`;
+            alertElement.textContent = message;
+            document.body.appendChild(alertElement);
+            alertElement.style.display = 'block';
+            setTimeout(() => {
+                alertElement.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(alertElement);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

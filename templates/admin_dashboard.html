@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshBasket - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/admin_dashboard.css">
+    <!-- Add this in the head section -->
+    <script src="/static/js/aws-config.js"></script>
+    <script src="/static/js/health-monitor.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="admin-sidebar">
+            <div class="logo-section">
+                <h2><i class="fas fa-leaf"></i> FreshBasket</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-chart-line icon"></i>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-shopping-cart icon"></i>
+                    Orders
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-box icon"></i>
+                    Products
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users icon"></i>
+                    Customers
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog icon"></i>
+                    Settings
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt icon"></i>
+                    Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <nav class="admin-nav">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search orders, products...">
+                </div>
+                <div class="admin-profile">
+                    <span class="notification-badge">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </span>
+                    <img src="assets/admin-avatar.png" alt="Admin" class="admin-avatar">
+                </div>
+            </nav>
+
+            <div class="dashboard-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Orders</h3>
+                        <div class="value">254</div>
+                        <div class="trend up">+12.5% <i class="fas fa-arrow-up"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending Orders</h3>
+                        <div class="value">45</div>
+                        <div class="trend down">-2.3% <i class="fas fa-arrow-down"></i></div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Revenue</h3>
+                        <div class="value">$15,245</div>
+                        <div class="trend up">+8.1% <i class="fas fa-arrow-up"></i></div>
+                    </div>
+                </div>
+
+                <div class="dashboard-section">
+                    <div class="section-header">
+                        <h2>Recent Orders</h2>
+                        <div class="header-actions">
+                            <button class="btn-clear" onclick="clearDeliveredOrders()">
+                                <i class="fas fa-broom"></i> Clear Delivered Orders
+                            </button>
+                            <button class="btn-filter">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <button class="btn-export">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="ordersTable">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Products</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderTableBody">
+                                <!-- Orders will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add this status change modal to your HTML body -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <h3>Update Order Status</h3>
+            <select id="statusSelect">
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeStatusModal()">Cancel</button>
+                <button class="btn-update" onclick="updateOrderStatus()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this after the existing stats cards -->
+    <div class="system-health-section">
+        <h2>System Health</h2>
+        <div class="health-grid">
+            <div class="health-card">
+                <h3>EC2 Status</h3>
+                <div class="health-indicator" data-service="ec2">Checking...</div>
+                <div class="details">
+                    <p>Region: <span id="currentRegion">Loading...</span></p>
+                    <p>Load: <span id="instanceLoad">0%</span></p>
+                </div>
+            </div>
+            <div class="health-card">
+                <h3>RDS Status</h3>
+                <div class="health-indicator" data-service="rds">Checking...</div>
+                <div class="details">
+                    <p>Connections: <span id="dbConnections">0</span></p>
+                    <p>Latency: <span id="dbLatency">0ms</span></p>
+                </div>
+            </div>
+            <div class="health-card">
+                <h3>System Load</h3>
+                <div class="health-indicator" data-service="system">Checking...</div>
+                <div class="details">
+                    <p>CPU: <span id="cpuUsage">0%</span></p>
+                    <p>Memory: <span id="memoryUsage">0%</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if admin is logged in
+            const isAdminLoggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+            if (!isAdminLoggedIn) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Initialize health monitoring
+            const healthMonitor = new HealthMonitor();
+            
+            // Update region information
+            async function updateRegionInfo() {
+                const endpoint = await loadBalancer().getEndpoint();
+                document.getElementById('currentRegion').textContent = 
+                    endpoint.includes('primary') ? 'US East (Primary)' : 'US West (Backup)';
+            }
+            
+            // Initial updates
+            updateDashboardStats();
+            updateOrdersTable();
+            updateRegionInfo();
+
+            // Set up real-time updates
+            setInterval(() => {
+                updateDashboardStats();
+                updateOrdersTable();
+            }, 5000); // Update every 5 seconds
+            
+            setInterval(updateRegionInfo, 60000); // Check region every minute
+        });
+
+        // Add logout functionality
+        function logout() {
+            localStorage.removeItem('isAdminLoggedIn');
+            window.location.href = '/login';
+        }
+
+        // Dashboard statistics
+        let dashboardStats = {
+            totalOrders: 0,
+            pendingOrders: 0,
+            totalRevenue: 0,
+            orderTrends: { total: 0, pending: 0, revenue: 0 }
+        };
+
+        // Sample order data (replace with your actual API data)
+        const sampleOrders = [
+            {
+                id: "ORD001",
+                customerName: "John Doe",
+                customerAvatar: "assets/avatars/user1.jpg",
+                products: "Organic Apples (2kg), Fresh Carrots (1kg)",
+                total: 45.99,
+                status: "pending",
+                date: "2024-03-20 14:30"
+            },
+            // Add more sample orders as needed
+        ];
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            fetch('/api/dashboard-stats')
+                .then(response => response.json())
+                .then(stats => {
+                    dashboardStats = stats;
+                    updateStatsDisplay();
+                })
+                .catch(error => {
+                    console.error('Error fetching dashboard stats:', error);
+                    // Fallback to sample data for demonstration
+                    simulateStatsUpdate();
+                });
+        }
+
+        // Simulate stats update (remove this in production)
+        function simulateStatsUpdate() {
+            dashboardStats.totalOrders = Math.floor(Math.random() * 100) + 200;
+            dashboardStats.pendingOrders = Math.floor(Math.random() * 30) + 15;
+            dashboardStats.totalRevenue = Math.floor(Math.random() * 5000) + 10000;
+            dashboardStats.orderTrends = {
+                total: ((Math.random() * 20) - 10).toFixed(1),
+                pending: ((Math.random() * 10) - 5).toFixed(1),
+                revenue: ((Math.random() * 15) - 7).toFixed(1)
+            };
+            updateStatsDisplay();
+        }
+
+        // Update stats display
+        function updateStatsDisplay() {
+            // Update Total Orders
+            document.querySelector('.stat-card:nth-child(1) .value').textContent = 
+                dashboardStats.totalOrders.toLocaleString();
+            document.querySelector('.stat-card:nth-child(1) .trend').innerHTML = 
+                `${dashboardStats.orderTrends.total}% <i class="fas fa-arrow-${dashboardStats.orderTrends.total >= 0 ? 'up' : 'down'}"></i>`;
+            document.querySelector('.stat-card:nth-child(1) .trend').className = 
+                `trend ${dashboardStats.orderTrends.total >= 0 ? 'up' : 'down'}`;
+
+            // Update Pending Orders
+            document.querySelector('.stat-card:nth-child(2) .value').textContent = 
+                dashboardStats.pendingOrders.toLocaleString();
+            document.querySelector('.stat-card:nth-child(2) .trend').innerHTML = 
+                `${dashboardStats.orderTrends.pending}% <i class="fas fa-arrow-${dashboardStats.orderTrends.pending >= 0 ? 'up' : 'down'}"></i>`;
+            document.querySelector('.stat-card:nth-child(2) .trend').className = 
+                `trend ${dashboardStats.orderTrends.pending >= 0 ? 'up' : 'down'}`;
+
+            // Update Total Revenue
+            document.querySelector('.stat-card:nth-child(3) .value').textContent = 
+                `$${dashboardStats.totalRevenue.toLocaleString()}`;
+            document.querySelector('.stat-card:nth-child(3) .trend').innerHTML = 
+                `${dashboardStats.orderTrends.revenue}% <i class="fas fa-arrow-${dashboardStats.orderTrends.revenue >= 0 ? 'up' : 'down'}"></i>`;
+            document.querySelector('.stat-card:nth-child(3) .trend').className = 
+                `trend ${dashboardStats.orderTrends.revenue >= 0 ? 'up' : 'down'}`;
+        }
+
+        // Update orders table
+        function updateOrdersTable() {
+            const orderTableBody = document.getElementById('orderTableBody');
+            
+            fetch('/api/orders')
+                .then(response => response.json())
+                .then(orders => {
+                    orderTableBody.innerHTML = orders.map(order => `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>
+                                <div class="customer-info">
+                                    <img src="${order.customerAvatar}" alt="${order.customerName}" class="customer-avatar">
+                                    <span>${order.customerName}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="order-products">
+                                    ${formatProducts(order.products)}
+                                </div>
+                            </td>
+                            <td>$${order.total.toFixed(2)}</td>
+                            <td>
+                                <span class="status-badge status-${order.status.toLowerCase()}" 
+                                      onclick="openStatusModal('${order.id}', '${order.status}')">
+                                    ${order.status}
+                                </span>
+                            </td>
+                            <td>${formatDate(order.date)}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon" onclick="viewOrder('${order.id}')" title="View Order">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn-icon" onclick="editOrder('${order.id}')" title="Edit Order">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error fetching orders:', error);
+                    // Fallback to sample data with the same structure
+                });
+        }
+
+        // Helper functions
+        function formatProducts(products) {
+            if (typeof products === 'string') return products;
+            return products.map(p => `${p.name} (${p.quantity})`).join(', ');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Order actions
+        function viewOrder(orderId) {
+            console.log('Viewing order:', orderId);
+            // Implement view order logic
+            alert(`Viewing order details for Order #${orderId}`);
+        }
+
+        function editOrder(orderId) {
+            console.log('Editing order:', orderId);
+            // Implement edit order logic
+            alert(`Editing order #${orderId}`);
+        }
+
+        // Status Modal Functions
+        let currentOrderId = null;
+        let currentStatus = null;
+
+        function openStatusModal(orderId, status) {
+            currentOrderId = orderId;
+            currentStatus = status;
+            const modal = document.getElementById('statusModal');
+            const statusSelect = document.getElementById('statusSelect');
+            statusSelect.value = status.toLowerCase();
+            modal.style.display = 'flex';
+        }
+
+        function closeStatusModal() {
+            const modal = document.getElementById('statusModal');
+            modal.style.display = 'none';
+            currentOrderId = null;
+            currentStatus = null;
+        }
+
+        function updateOrderStatus() {
+            const newStatus = document.getElementById('statusSelect').value;
+            
+            // API call to update status
+            fetch(`/api/orders/${currentOrderId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update the UI
+                const statusBadge = document.querySelector(`tr[data-order-id="${currentOrderId}"] .status-badge`);
+                if (statusBadge) {
+                    statusBadge.className = `status-badge status-${newStatus}`;
+                    statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                }
+                
+                // Show success message
+                showNotification('Status updated successfully');
+                
+                // Close modal
+                closeStatusModal();
+                
+                // Refresh orders table
+                updateOrdersTable();
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                showNotification('Error updating status', 'error');
+            });
+        }
+
+        // Notification function
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existingNotification = document.querySelector('.notification-toast');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // Create notification container
+            const notification = document.createElement('div');
+            notification.className = `notification-toast ${type}`;
+
+            // Create icon based on type
+            const icon = document.createElement('i');
+            switch(type) {
+                case 'success':
+                    icon.className = 'fas fa-check-circle';
+                    break;
+                case 'error':
+                    icon.className = 'fas fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    icon.className = 'fas fa-exclamation-triangle';
+                    break;
+                case 'info':
+                    icon.className = 'fas fa-info-circle';
+                    break;
+            }
+
+            // Create message container
+            const messageContent = document.createElement('div');
+            messageContent.className = 'notification-content';
+            
+            // Add title based on type
+            const title = document.createElement('h4');
+            title.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            
+            // Add message
+            const messageText = document.createElement('p');
+            messageText.textContent = message;
+
+            // Create close button
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'notification-close';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = () => notification.remove();
+
+            // Assemble notification
+            messageContent.appendChild(title);
+            messageContent.appendChild(messageText);
+            notification.appendChild(icon);
+            notification.appendChild(messageContent);
+            notification.appendChild(closeBtn);
+            document.body.appendChild(notification);
+
+            // Add show class for animation
+            setTimeout(() => notification.classList.add('show'), 10);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Search functionality
+        document.querySelector('.search-bar input').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#orderTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Global variables for orders management
+        let adminOrders = [];
+
+        function updateOrdersTable() {
+            const orderTableBody = document.getElementById('orderTableBody');
+            
+            // Get orders from localStorage
+            adminOrders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            if (adminOrders.length === 0) {
+                orderTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-orders">No orders found</td>
+                    </tr>`;
+                return;
+            }
+
+            orderTableBody.innerHTML = adminOrders.map(order => `
+                <tr data-order-id="${order.id}">
+                    <td>#${order.id}</td>
+                    <td>
+                        <div class="customer-info">
+                            <img src="default-avatar.png" alt="Customer" class="customer-avatar">
+                            <span>${order.customerName || 'Customer'}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="order-items">
+                            <span class="item-count">${order.items.length} items</span>
+                            <div class="item-tooltip">
+                                ${order.items.map(item => `
+                                    • ${item.name} (${item.quantity})<br>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </td>
+                    <td>$${order.total}</td>
+                    <td>
+                        <select class="status-select" onchange="updateOrderStatus('${order.id}', this.value)">
+                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                            <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                    <td>${new Date(order.date).toLocaleString()}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="viewOrderDetails('${order.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateDashboardStats();
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            // Update order status in localStorage
+            let orders = JSON.parse(localStorage.getItem('orders')) || [];
+            const orderIndex = orders.findIndex(order => order.id === orderId);
+            
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+                localStorage.setItem('orders', JSON.stringify(orders));
+                
+                // Show notification
+                showNotification(`Order #${orderId} status updated to ${newStatus}`, 'success');
+                
+                // Update dashboard stats
+                updateDashboardStats();
+            }
+        }
+
+        function updateDashboardStats() {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Calculate statistics
+            const stats = {
+                totalOrders: orders.length,
+                pendingOrders: orders.filter(order => order.status === 'pending').length,
+                totalRevenue: orders.reduce((sum, order) => sum + parseFloat(order.total), 0)
+            };
+
+            // Update stats display
+            document.querySelector('.stat-card:nth-child(1) .value').textContent = stats.totalOrders;
+            document.querySelector('.stat-card:nth-child(2) .value').textContent = stats.pendingOrders;
+            document.querySelector('.stat-card:nth-child(3) .value').textContent = 
+                `$${stats.totalRevenue.toFixed(2)}`;
+        }
+
+        // Initialize real-time updates
+        document.addEventListener('DOMContentLoaded', () => {
+            updateOrdersTable();
+            setInterval(updateOrdersTable, 5000); // Update every 5 seconds
+        });
+
+        function clearDeliveredOrders() {
+            // Show confirmation dialog
+            if (!confirm('Are you sure you want to clear all delivered orders? This action cannot be undone.')) {
+                return;
+            }
+
+            // Get current orders
+            let orders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Filter out delivered orders
+            const previousCount = orders.length;
+            orders = orders.filter(order => order.status !== 'delivered');
+            const removedCount = previousCount - orders.length;
+            
+            // Save updated orders
+            localStorage.setItem('orders', JSON.stringify(orders));
+            
+            // Show notification
+            showNotification(`Cleared ${removedCount} delivered orders`, 'success');
+            
+            // Update tables and stats
+            updateOrdersTable();
+            updateDashboardStats();
+        }
+
+        // Add this CSS for the clear button
+        const style = document.createElement('style');
+        style.textContent = `
+            .btn-clear {
+                background: #ff6b6b;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.3s ease;
+            }
+
+            .btn-clear:hover {
+                background: #ff5252;
+                transform: translateY(-1px);
+            }
+
+            .btn-clear i {
+                font-size: 0.9rem;
+            }
+
+            .header-actions {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

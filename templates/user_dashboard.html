@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshBasket - User Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <!-- Add this in the head section -->
+    <script src="/static/js/aws-config.js"></script>
+    <script src="/static/js/health-monitor.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <h2>FreshBasket</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="icon">📦</span>
+                    My Orders
+                </a>
+                <a href="/shop" class="nav-item">
+                    <span class="icon">🛒</span>
+                    Shop
+                </a>
+                <a href="/" class="nav-item">
+                    <span class="icon">🏠</span>
+                    Home
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>User Dashboard</h1>
+                <div class="user-info">
+                    <span class="welcome">Welcome, John Doe</span>
+                    <img src="user-avatar.jpg" alt="User" class="avatar">
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Total Orders</h3>
+                    <p class="stat-value">25</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Orders</h3>
+                    <p class="stat-value">3</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Spent</h3>
+                    <p class="stat-value">$349.99</p>
+                </div>
+            </div>
+
+            <!-- Orders Table Section -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Order History</h2>
+                    <div class="table-actions">
+                        <button class="btn-clear" onclick="clearUserDeliveredOrders()">
+                            <i class="fas fa-broom"></i> Clear Delivered Orders
+                        </button>
+                        <input type="text" placeholder="Search orders..." class="search-input">
+                        <select class="filter-select">
+                            <option value="all">All Orders</option>
+                            <option value="pending">Pending</option>
+                            <option value="delivered">Delivered</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                        <!-- Sample Order Rows -->
+                        <tr>
+                            <td>#ORD-2024-001</td>
+                            <td>2024-01-15</td>
+                            <td>
+                                <div class="order-items">
+                                    <span class="item-count">3 items</span>
+                                    <div class="item-tooltip">
+                                        • Fresh Apples (2kg)<br>
+                                        • Organic Bananas (1kg)<br>
+                                        • Fresh Carrots (500g)
+                                    </div>
+                                </div>
+                            </td>
+                            <td>$45.99</td>
+                            <td><span class="status-badge status-delivered">Delivered</span></td>
+                            <td>
+                                <button class="action-btn btn-view" onclick="viewOrderDetails('ORD-2024-001')">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        <!-- Add more sample rows as needed -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add this script tag at the bottom of the body -->
+    <script>
+        // Order details functionality
+        function viewOrderDetails(orderId) {
+            const orderDetails = {
+                'ORD-2024-001': {
+                    items: [
+                        { name: 'Fresh Apples', quantity: '2kg', price: '$25.99' },
+                        { name: 'Organic Bananas', quantity: '1kg', price: '$12.00' },
+                        { name: 'Fresh Carrots', quantity: '500g', price: '$8.00' }
+                    ],
+                    total: '$45.99',
+                    status: 'Delivered',
+                    date: '2024-01-15',
+                    address: '123 Main St, City, Country'
+                }
+                // Add more order details as needed
+            };
+
+            showOrderModal(orderDetails[orderId]);
+        }
+
+        function showOrderModal(details) {
+            const modal = document.createElement('div');
+            modal.className = 'order-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2>Order Details</h2>
+                    <div class="order-info">
+                        <p><strong>Date:</strong> ${details.date}</p>
+                        <p><strong>Status:</strong> ${details.status}</p>
+                        <p><strong>Delivery Address:</strong> ${details.address}</p>
+                    </div>
+                    <div class="order-items-list">
+                        <h3>Items</h3>
+                        ${details.items.map(item => `
+                            <div class="order-item">
+                                <span>${item.name} (${item.quantity})</span>
+                                <span>${item.price}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-total">
+                        <strong>Total:</strong> ${details.total}
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="modal-close">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Add event listeners when the document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search functionality
+            document.querySelector('.search-input').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#orderTableBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+
+            // Filter functionality
+            document.querySelector('.filter-select').addEventListener('change', function(e) {
+                const filterValue = e.target.value;
+                const rows = document.querySelectorAll('#orderTableBody tr');
+                
+                rows.forEach(row => {
+                    const status = row.querySelector('.status-badge').textContent.toLowerCase();
+                    row.style.display = (filterValue === 'all' || status === filterValue) ? '' : 'none';
+                });
+            });
+        });
+
+        function updateUserOrdersTable() {
+            const orderTableBody = document.getElementById('orderTableBody');
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Filter orders for current user (you'll need to implement user authentication)
+            const userOrders = orders; // For now, showing all orders
+            
+            if (userOrders.length === 0) {
+                orderTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-orders">No orders found</td>
+                    </tr>`;
+                return;
+            }
+
+            orderTableBody.innerHTML = userOrders.map(order => `
+                <tr>
+                    <td>#${order.id}</td>
+                    <td>${new Date(order.date).toLocaleString()}</td>
+                    <td>
+                        <div class="order-items">
+                            <span class="item-count">${order.items.length} items</span>
+                            <div class="item-tooltip">
+                                ${order.items.map(item => `
+                                    • ${item.name} (${item.quantity})<br>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </td>
+                    <td>$${order.total}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    <td>
+                        <button class="action-btn btn-view" onclick="viewOrderDetails('${order.id}')">
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateUserStats();
+        }
+
+        function updateUserStats() {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Calculate user statistics
+            const stats = {
+                totalOrders: orders.length,
+                pendingOrders: orders.filter(order => order.status === 'pending').length,
+                totalSpent: orders.reduce((sum, order) => sum + parseFloat(order.total), 0)
+            };
+
+            // Update stats display
+            document.querySelectorAll('.stat-card').forEach(card => {
+                const type = card.querySelector('h3').textContent.toLowerCase();
+                if (type.includes('orders')) {
+                    card.querySelector('.stat-value').textContent = stats.totalOrders;
+                } else if (type.includes('pending')) {
+                    card.querySelector('.stat-value').textContent = stats.pendingOrders;
+                } else if (type.includes('spent')) {
+                    card.querySelector('.stat-value').textContent = `$${stats.totalSpent.toFixed(2)}`;
+                }
+            });
+        }
+
+        // Initialize real-time updates
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserOrdersTable();
+            setInterval(updateUserOrdersTable, 5000); // Update every 5 seconds
+        });
+
+        function clearUserDeliveredOrders() {
+            // Show confirmation dialog
+            if (!confirm('Are you sure you want to clear your delivered orders from the history? This action cannot be undone.')) {
+                return;
+            }
+
+            // Get current orders
+            let orders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Count delivered orders before clearing
+            const deliveredOrders = orders.filter(order => order.status === 'delivered');
+            
+            // Filter out delivered orders
+            orders = orders.filter(order => order.status !== 'delivered');
+            
+            // Save updated orders
+            localStorage.setItem('orders', JSON.stringify(orders));
+            
+            // Show notification
+            showNotification(`Cleared ${deliveredOrders.length} delivered orders from history`, 'success');
+            
+            // Update table and stats
+            updateUserOrdersTable();
+            updateUserStats();
+        }
+
+        // Add notification function if not already present
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 300);
+                }, 2000);
+            }, 100);
+        }
+
+        // Add CSS for notifications and clear button
+        const style = document.createElement('style');
+        style.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 2rem;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                transform: translateX(120%);
+                transition: transform 0.3s ease;
+                z-index: 1001;
+            }
+            
+            .notification.show {
+                transform: translateX(0);
+            }
+            
+            .notification.success {
+                background: #4caf50;
+                color: white;
+            }
+            
+            .notification.error {
+                background: #f44336;
+                color: white;
+            }
+
+            .btn-clear {
+                background: #ff6b6b;
+                color: white;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.3s ease;
+            }
+
+            .btn-clear:hover {
+                background: #ff5252;
+                transform: translateY(-1px);
+            }
+
+            .btn-clear i {
+                font-size: 0.9rem;
+            }
+
+            .table-actions {
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Add this after the existing stats cards
+        <div class="service-status">
+            <h3>Service Status</h3>
+            <div class="status-indicators">
+                <div class="status-item">
+                    <span class="status-label">Server Status:</span>
+                    <span class="status-value" id="serverStatus">Connected</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Response Time:</span>
+                    <span class="status-value" id="responseTime">0ms</span>
+                </div>
+            </div>
+        </div>
+
+        // Add this to your existing script section
+        <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const healthMonitor = new HealthMonitor();
+            
+            // Monitor response times
+            async function checkResponseTime() {
+                const start = performance.now();
+                try {
+                    await fetch('/api/health/ping');
+                    const duration = Math.round(performance.now() - start);
+                    document.getElementById('responseTime').textContent = `${duration}ms`;
+                    document.getElementById('serverStatus').textContent = 'Connected';
+                    document.getElementById('serverStatus').className = 'status-value connected';
+                } catch (error) {
+                    document.getElementById('serverStatus').textContent = 'Reconnecting...';
+                    document.getElementById('serverStatus').className = 'status-value disconnected';
+                }
+            }
+            
+            // Check response time every 30 seconds
+            setInterval(checkResponseTime, 30000);
+            checkResponseTime(); // Initial check
+        });
+        </script>
+
+        // Add this CSS
+        <style>
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .health-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .health-indicator {
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+            margin: 0.5rem 0;
+            font-weight: bold;
+        }
+
+        .health-indicator.healthy {
+            background: #4caf50;
+            color: white;
+        }
+
+        .health-indicator.warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .health-indicator.error {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-indicators {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+
+        .status-value.connected {
+            color: #4caf50;
+        }
+
+        .status-value.disconnected {
+            color: #f44336;
+        }
+        </style>
+    </script>
+</body>
+</html>
