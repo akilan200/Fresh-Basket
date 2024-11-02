@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import boto3
 import mysql.connector.pooling
 
-app = Flask(__name__)
+app = Flask(_name_)
 
 # AWS Configuration
 AWS_REGION = 'us-east-1'
@@ -47,13 +47,16 @@ connection_pools = {
 
 # Flask SQLAlchemy Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:qwerty1234@fbdb.c9ouwkeoegkz.us-east-1.rds.amazonaws.com:3306/fresh'
-
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ECHO'] = True  # Enables SQL query logging for debugging
 app.secret_key = 'your_secret_key'
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
+
+# Create tables if they don’t exist
+with app.app_context():
+    db.create_all()
 
 # Health monitoring function
 def check_system_health():
@@ -84,18 +87,9 @@ def trigger_auto_scaling():
     except Exception as e:
         return {'error': str(e)}
 
-# Database failover
-def switch_to_replica():
-    global current_pool
-    try:
-        current_pool = connection_pools['replica']
-        return {'status': 'switched_to_replica'}
-    except Exception as e:
-        return {'error': str(e)}
-
 # Database Models
 class User(db.Model):
-    __tablename__ = 'users'
+    _tablename_ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -115,7 +109,7 @@ class Product(db.Model):
     image_url = db.Column(db.String(200))
 
 class Order(db.Model):
-    __tablename__ = 'orders'
+    _tablename_ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     date_ordered = db.Column(db.DateTime, default=datetime.utcnow)
@@ -126,57 +120,33 @@ class Order(db.Model):
 def home():
     return render_template('home.html')
 
-@app.route('/shop')
-def shop():
-    return render_template('shop.html')
-
-@app.route('/cart')
-def cart():
-    return render_template('cart.html')
-
-@app.route('/items')
-def items():
-    return render_template('items.html')
-
-@app.route('/user_dashboard')
-def user_dashboard():
-    return render_template('user_dashboard.html')
-
-@app.route('/admin_dashboard')
-def admin_dashboard():
-    return render_template('admin_dashboard.html')   
-
-# Routes
-@app.route('/api/health')
-def health_check():
-    return jsonify(check_system_health())
-
-@app.route('/api/scaling/trigger', methods=['POST'])
-def trigger_scaling():
-    return jsonify(trigger_auto_scaling())
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
-        
+
+        # Check if email already exists
         if User.query.filter_by(email=email).first():
             flash('Email already exists', 'error')
             return redirect(url_for('register'))
         
+        # Hash the password
         hashed_password = generate_password_hash(password)
         new_user = User(name=name, email=email, password=hashed_password)
-        
+
+        # Try to add user to the database
         try:
             db.session.add(new_user)
             db.session.commit()
             flash('Registration successful!', 'success')
             return redirect(url_for('login'))
         except Exception as e:
-            db.session.rollback()
+            db.session.rollback()  # Rollback in case of error
+            print(f"Error committing to database: {str(e)}")  # Debugging print
             flash('Registration failed. Please try again.', 'error')
+            return redirect(url_for('register'))
     
     return render_template('register.html')
 
@@ -204,59 +174,6 @@ def logout():
     session.clear()
     flash('You have been logged out', 'info')
     return redirect(url_for('home'))
-
-@app.route('/products')
-def products():
-    try:
-        conn = connection_pools['primary'].get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM products")
-        products = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return render_template('products.html', products=products)
-    except Exception as e:
-        flash('Error fetching products', 'error')
-        return redirect(url_for('home'))
-
-@app.route('/add_product', methods=['GET', 'POST'])
-def add_product():
-    if request.method == 'POST':
-        try:
-            # Get form data
-            name = request.form.get('name')
-            price = float(request.form.get('price', 0))
-            description = request.form.get('description')
-            category = request.form.get('category')
-            stock = int(request.form.get('stock', 0))
-            image_url = request.form.get('image_url')
-
-            # Print debug information
-            print(f"Adding product: {name}, {price}, {category}")
-
-            # Create product using direct SQL
-            conn = connection_pools['primary'].get_connection()
-            cursor = conn.cursor()
-            
-            insert_query = """
-                INSERT INTO products (name, price, description, category, stock, image_url)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(insert_query, (name, price, description, category, stock, image_url))
-            conn.commit()
-            
-            cursor.close()
-            conn.close()
-
-            flash('Product added successfully!', 'success')
-            return redirect(url_for('products'))
-            
-        except Exception as e:
-            print(f"Error adding product: {str(e)}")
-            flash(f'Error adding product: {str(e)}', 'error')
-            return redirect(url_for('add_product'))
-
-    return render_template('add_product.html')
 
 # Initialize database
 def init_db():
@@ -325,20 +242,6 @@ def test_db():
     except Exception as e:
         return jsonify({'error': str(e)})
 
-@app.route('/view_products')
-def view_products():
-    try:
-        conn = connection_pools['primary'].get_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM products")
-        products = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify({'products': products})
-    except Exception as e:
-        return jsonify({'error': str(e)})
-
-if __name__ == '__main__':
+if _name_ == '_main_':
     init_db()
     app.run(host='0.0.0.0', debug=True)
-
