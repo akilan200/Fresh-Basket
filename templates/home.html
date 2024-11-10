@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh Basket - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Fresh Basket!</h1>
+        <nav>
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}">Register</a>
+            <a href="{{ url_for('shop') }}">Shop</a>
+        </nav>
+    </header>
+    <main>
+        <p>Your one-stop shop for fresh groceries delivered to your doorstep.</p>
+    </main>
+    <footer>
+        <p>&copy; 2023 Fresh Basket. All rights reserved.</p>
+    </footer>
+</body>
+</html>
