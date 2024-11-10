@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - FreshBasket</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Your Shopping Cart</h1>
+    </header>
+    
+    <main>
+        {% if cart_items %}
+            <form action="{{ url_for('update_cart') }}" method="post">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>Ksh {{ item.price }}</td>
+                                <td>
+                                    <label for="quantity-{{ item.name }}" class="visually-hidden">Quantity</label>
+                                    <input type="number" name="quantity-{{ item.name }}" id="quantity-{{ item.name }}" value="{{ item.quantity }}" min="1">
+                                </td>
+                                <td>Ksh {{ item.price * item.quantity }}</td>
+                                <td>
+                                    <button type="submit" name="update_item" value="{{ item.name }}">Update</button>
+                                    <button type="submit" name="remove_item" value="{{ item.name }}">Remove</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3"><strong>Total Amount:</strong></td>
+                            <td colspan="2"><strong>Ksh {{ total_price }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </form>
+
+            <section class="checkout-section">
+                <h2>Checkout</h2>
+                <form action="{{ url_for('place_order') }}" method="post">
+                    <label for="address">Delivery Address:</label>
+                    <input type="text" id="address" name="address" placeholder="Enter your address" required>
+
+                    <label for="payment-method">Payment Method:</label>
+                    <select name="payment_method" id="payment-method" aria-label="Select Payment Method">
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Credit Card">Credit Card</option>
+                    </select>
+
+                    <button type="submit">Place Order</button>
+                </form>
+            </section>
+        {% else %}
+            <p>Your cart is empty. <a href="{{ url_for('shop') }}">Continue Shopping</a></p>
+        {% endif %}
+    </main>
+
+    <footer>
+        <p>&copy; 2024 FreshBasket. All rights reserved.</p>
+    </footer>
+</body>
+</html>
