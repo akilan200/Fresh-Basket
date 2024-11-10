@@ -244,4 +244,4 @@ def test_db():
 
 if _name_ == '_main_':
     init_db()
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host="0.0.0.0", port=5000,debug=True)
